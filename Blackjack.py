@@ -33,70 +33,73 @@ def card_value(card):
 
 def play_game():
     """Main function to play the game."""
-    cash = 1000
+    starting_cash = 1000
     min_bet = 1
+    
+    while True:
+        cash = starting_cash
+        while cash > 0:
+            print("\nWelcome to Blackjack!")
+            print(f"You have ${cash}.")
+            
+            max_bet = cash
+            bet = int(input(f"Please choose your bet amount (min: ${min_bet}, max: ${max_bet}): "))
+            if bet < min_bet or bet > max_bet:
+                print("Invalid bet amount. Please choose a valid bet.")
+                continue
 
-    while cash > 0:
-        print("\nWelcome to Blackjack!")
-        print(f"You have ${cash}.")
-        
-        max_bet = cash
-        bet = int(input(f"Please choose your bet amount (min: ${min_bet}, max: ${max_bet}): "))
-        if bet < min_bet or bet > max_bet:
-            print("Invalid bet amount. Please choose a valid bet.")
-            continue
+            # Initialize player and dealer hands
+            deck = create_deck()
+            player_cards = [draw_card(deck), draw_card(deck)]
+            dealer_cards = [draw_card(deck), draw_card(deck)]
 
-        # Initialize player and dealer hands
-        deck = create_deck()
-        player_cards = [draw_card(deck), draw_card(deck)]
-        dealer_cards = [draw_card(deck), draw_card(deck)]
+            # Display initial hands
+            print("\nYour cards:", player_cards)
+            print("Dealer's cards:", [dealer_cards[0], '*'])
 
-        # Display initial hands
-        print("\nYour cards:", player_cards)
-        print("Dealer's cards:", [dealer_cards[0], '*'])
-
-        # Player's turn
-        while True:
-            choice = input("\nHit (H) or Stand (S): ").upper()
-            if choice == 'H':
-                player_cards.append(draw_card(deck))
-                print("Your cards:", player_cards)
-                total, blackjack = calculate_total(player_cards)
-                if blackjack:
-                    print("Blackjack! You win!")
-                    cash += bet
+            # Player's turn
+            while True:
+                choice = input("\nHit (H) or Stand (S): ").upper()
+                if choice == 'H':
+                    player_cards.append(draw_card(deck))
+                    print("Your cards:", player_cards)
+                    total, blackjack = calculate_total(player_cards)
+                    if blackjack:
+                        print("Blackjack! You win!")
+                        cash += bet * 2
+                        break
+                    elif total > 21:
+                        print("Bust! You lose.")
+                        cash -= bet
+                        break
+                elif choice == 'S':
                     break
-                elif total > 21:
-                    print("Bust! You lose.")
+                else:
+                    print("Invalid choice. Please enter H or S.")
+
+            # Dealer's turn
+            if total <= 21:
+                while True:
+                    dealer_total, _ = calculate_total(dealer_cards)
+                    if dealer_total >= 17:
+                        break
+                    dealer_cards.append(draw_card(deck))
+                    print("Dealer draws a card.")
+
+                print("\nDealer's cards:", dealer_cards)
+
+                # Determine winner
+                player_total, _ = calculate_total(player_cards)
+                if dealer_total > 21 or (player_total <= 21 and player_total > dealer_total):
+                    print("You win!")
+                    cash += bet * 2
+                elif dealer_total == player_total:
+                    print("It's a tie!")
+                else:
+                    print("Dealer wins!")
                     cash -= bet
-                    break
-            elif choice == 'S':
-                break
-            else:
-                print("Invalid choice. Please enter H or S.")
 
-        # Dealer's turn
-        if total <= 21:
-            print("\nDealer's cards:", dealer_cards)
-            dealer_total, _ = calculate_total(dealer_cards)
-            while dealer_total < 17:
-                dealer_cards.append(draw_card(deck))
-                print("Dealer draws a card.")
-                print("Dealer's cards:", dealer_cards)
-                dealer_total, _ = calculate_total(dealer_cards)
-
-            # Determine winner
-            player_total, _ = calculate_total(player_cards)
-            if dealer_total > 21 or (player_total <= 21 and player_total > dealer_total):
-                print("You win!")
-                cash += bet
-            elif dealer_total == player_total:
-                print("It's a tie!")
-            else:
-                print("Dealer wins!")
-                cash -= bet
-
-        print(f"Your current balance: ${cash}")
+            print(f"Your current balance: ${cash}")
 
         play_again = input("\nDo you want to play again? (Y/N): ").upper()
         if play_again != 'Y':
